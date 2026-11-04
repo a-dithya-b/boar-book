@@ -18,7 +18,7 @@ export const PARTS: Record<Part, string> = {
 
 export const CHAPTERS: ChapterMeta[] = [
   { n: 1, slug: "trade-offs", title: "Trade-offs in Data Systems Architecture", part: 1, play: "Sort OLTP from analytics, weigh cloud vs self-hosting, place servers, delete a user everywhere.", ready: true },
-  { n: 2, slug: "nonfunctional-requirements", title: "Defining Nonfunctional Requirements", part: 1, play: "Run a home-timeline fan-out and read latency percentiles.", ready: false },
+  { n: 2, slug: "nonfunctional-requirements", title: "Defining Nonfunctional Requirements", part: 1, play: "Survive a celebrity's post, read the latency tail, run a chaos test, scale to 20×.", ready: true },
   { n: 3, slug: "data-models", title: "Data Models and Query Languages", part: 1, play: "Model the same data as relational, document and graph.", ready: false },
   { n: 4, slug: "storage", title: "Storage and Retrieval", part: 1, play: "Flush and compact an LSM-tree; split pages in a B-tree.", ready: false },
   { n: 5, slug: "encoding", title: "Encoding and Evolution", part: 1, play: "Evolve a schema without breaking old or new code.", ready: false },
