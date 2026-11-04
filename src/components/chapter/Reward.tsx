@@ -5,6 +5,7 @@ import { toPng } from "html-to-image";
 import type { ChapterMeta } from "@/content/chapters";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { IS_ARTIFACT } from "@/lib/target";
 
 function Stamp({ n, title }: { n: number; title: string }) {
   return (
@@ -88,9 +89,12 @@ export function Reward({
             ))}
           </ul>
         </div>
-        <Button variant="outline" onClick={download} disabled={saving}>
-          <Download /> {saving ? "Saving…" : "Save card as image"}
-        </Button>
+        {/* artifacts block downloads, so the button only ships on the regular site */}
+        {!IS_ARTIFACT && (
+          <Button variant="outline" onClick={download} disabled={saving}>
+            <Download /> {saving ? "Saving…" : "Save card as image"}
+          </Button>
+        )}
       </div>
     </div>
   );

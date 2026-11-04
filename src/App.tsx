@@ -7,10 +7,12 @@ import Home from "@/pages/Home";
 const ChapterPage = lazy(() => import("@/pages/Chapter"));
 
 function ScrollToTop() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+    const target = hash.length > 1 ? document.getElementById(hash.slice(1)) : null;
+    if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    else window.scrollTo(0, 0);
+  }, [pathname, hash]);
   return null;
 }
 

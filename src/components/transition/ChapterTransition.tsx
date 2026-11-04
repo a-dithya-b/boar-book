@@ -3,6 +3,7 @@ import { Link, useNavigate, type LinkProps } from "react-router";
 import { motion } from "motion/react";
 import { chapterBySlug } from "@/content/chapters";
 import { CHAPTER_REGISTRY, introFor } from "@/chapters/registry";
+import { initialChapterSlug } from "@/lib/target";
 
 /**
  * Entering a chapter:
@@ -28,7 +29,6 @@ const TransitionCtx = createContext<Ctx>({ enterChapter: () => {}, revealed: tru
 export const useChapterTransition = () => useContext(TransitionCtx);
 
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const SLUG_IN_PATH = /^\/chapter\/([^/]+)/;
 const seen = new Set<string>(); // intros seen this visit play faster next time
 
 const COVER_MS = 450;
@@ -39,8 +39,8 @@ export function ChapterTransitionProvider({ children }: { children: ReactNode })
   const navigate = useNavigate();
   // landing directly on a chapter URL starts with the scene already covering the page
   const [st, setSt] = useState<State>(() => {
-    const m = window.location.pathname.match(SLUG_IN_PATH);
-    return m && !reducedMotion() ? { slug: m[1], origin: null, phase: "scene" } : { slug: null, origin: null, phase: "idle" };
+    const slug = initialChapterSlug();
+    return slug && !reducedMotion() ? { slug, origin: null, phase: "scene" } : { slug: null, origin: null, phase: "idle" };
   });
   const phase = useRef(st.phase);
   phase.current = st.phase;
