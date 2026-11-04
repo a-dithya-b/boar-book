@@ -6,5 +6,5 @@ import path from "node:path";
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: { chunkSizeWarningLimit: 1200 },
-  resolve: { alias: { "@": path.resolve(__dirname, "src") } },
+  resolve: { alias: { "@": path.resolve(import.meta.dirname, "src") } },
 });
