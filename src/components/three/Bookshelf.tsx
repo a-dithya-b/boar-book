@@ -107,7 +107,7 @@ function Book({
   reduce: boolean;
   started: boolean;
   onHover: (n: number | null) => void;
-  onOpen: (ch: ChapterMeta) => void;
+  onOpen: (ch: ChapterMeta, origin: { x: number; y: number }) => void;
   fontsReady: boolean;
 }) {
   const ref = useRef<THREE.Group>(null);
@@ -164,7 +164,7 @@ function Book({
         }}
         onClick={(e) => {
           e.stopPropagation();
-          onOpen(ch);
+          onOpen(ch, { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY });
         }}
       >
         <meshStandardMaterial color={cover} roughness={0.55} metalness={0.05} />
@@ -211,7 +211,7 @@ export function Bookshelf({
   started?: boolean;
   hovered: number | null;
   onHover: (n: number | null) => void;
-  onOpen: (ch: ChapterMeta) => void;
+  onOpen: (ch: ChapterMeta, origin: { x: number; y: number }) => void;
 }) {
   const [fontsReady, setFontsReady] = useState(false);
   const [opening, setOpening] = useState<number | null>(null);
@@ -241,11 +241,12 @@ export function Bookshelf({
     if (n !== null) touched.current = true;
     onHover(n);
   };
-  const open = (ch: ChapterMeta) => {
+  const open = (ch: ChapterMeta, origin: { x: number; y: number }) => {
     touched.current = true;
-    if (reduce) return onOpen(ch);
+    if (reduce) return onOpen(ch, origin);
+    // pull the book out, then let the chapter transition take over from the click point
     setOpening(ch.n);
-    window.setTimeout(() => onOpen(ch), 420);
+    window.setTimeout(() => onOpen(ch, origin), 220);
   };
   useEffect(() => {
     Promise.all([

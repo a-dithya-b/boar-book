@@ -93,3 +93,16 @@ src/
 4. Ch 6 missions 1–4.
 5. Visual QA with Playwright (desktop and phone), then build and push.
 6. Review with you, then roll the same template out to other chapters.
+
+## Ideas: other ways to show the chapters (not built)
+
+| Idea | Why it fits | Cost |
+|---|---|---|
+| **The building:** floors stacked by Part | Part I is literally "Foundations"; you climb the book | Medium (3D) |
+| **Metro map:** Parts are lines, chapters are stations | Interchanges show how ideas connect, which helps recall; works on phones | Medium (2D) |
+| **Data-centre aisle:** each chapter is a rack | Very on-theme, game-like | High; hard on phones |
+| **Append-only log:** chapters as offsets 0–13 | Clever nod to Ch 11–13 | Low; less fun |
+| **Node graph:** chapters as networked nodes | Packets flow between related chapters | Medium |
+
+Leaning: the building, or the metro map if phones matter more. The chapter
+entrance transition is independent of this choice (it opens from the click point).

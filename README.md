@@ -39,8 +39,19 @@ See [PLAN.md](PLAN.md) for the roadmap and the design decisions.
    missions, quiz and takeaways (types in `src/components/chapter/types.ts`).
 2. Each mission is a component that receives `{ onComplete, done }` and calls
    `onComplete()` when the player finishes it.
-3. Register the module in `src/pages/Chapter.tsx` and set `ready: true` in
-   `src/content/chapters.ts`.
+3. Give the chapter an entrance: `src/chapters/chNN-<slug>/intro.tsx` exporting an
+   `IntroScene` (`{ Scene, duration }`, types in `src/components/transition/types.ts`).
+   The scene plays on a black full-screen stage while the chapter loads. Divide
+   your animation timings by the `speed` prop (repeat visits play faster).
+   Skip this step and the chapter gets the default number-and-title entrance.
+4. Register it in `src/chapters/registry.ts` (`load` + `intro`) and set
+   `ready: true` in `src/content/chapters.ts`.
+
+Link to chapters with `<ChapterLink slug="…">` (or `useChapterTransition().enterChapter`)
+so the entrance plays. The transition: a black circle grows from the click point,
+the scene plays while the chapter's code loads, then the curtain lifts and the
+chapter content rises in. It can be skipped with a click or Esc, and is skipped
+entirely when the visitor prefers reduced motion.
 
 ## Stack
 

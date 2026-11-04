@@ -1,5 +1,4 @@
 import { lazy, Suspense, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router";
 import { motion, useInView } from "motion/react";
 import { ArrowRight, ArrowDown, MousePointerClick } from "lucide-react";
 import { CHAPTERS, PARTS, type ChapterMeta, type Part } from "@/content/chapters";
@@ -11,6 +10,7 @@ import { Magnetic } from "@/components/landing/Magnetic";
 import { Stats } from "@/components/landing/Stats";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { cn } from "@/lib/utils";
+import { ChapterLink, useChapterTransition } from "@/components/transition/ChapterTransition";
 
 const Bookshelf = lazy(() => import("@/components/three/Bookshelf"));
 
@@ -32,9 +32,9 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 export default function Home() {
-  const navigate = useNavigate();
+  const { enterChapter } = useChapterTransition();
   const [hovered, setHovered] = useState<number | null>(null);
-  const open = (ch: ChapterMeta) => navigate(`/chapter/${ch.slug}`);
+  const open = (ch: ChapterMeta, origin?: { x: number; y: number }) => enterChapter(ch.slug, origin);
   const active = CHAPTERS.find((c) => c.n === hovered);
   const playable = CHAPTERS.find((c) => c.ready)!;
   const shelfRef = useRef<HTMLDivElement>(null);
@@ -51,8 +51,8 @@ export default function Home() {
         <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pt-12 pb-6 sm:px-6 sm:pt-20 lg:grid-cols-[1.15fr_1fr]">
           <div>
             <motion.div {...fadeUp(0)}>
-              <Link
-                to={`/chapter/${playable.slug}`}
+              <ChapterLink
+                slug={playable.slug}
                 className="group mb-5 inline-flex items-center gap-2 rounded-full border bg-background/80 py-1 pr-3 pl-2 text-xs backdrop-blur transition-colors hover:border-foreground/30"
               >
                 <span className="relative flex size-2">
@@ -63,7 +63,7 @@ export default function Home() {
                 <span className="text-muted-foreground">·</span>
                 <span>Ch {playable.n} {playable.title} is playable</span>
                 <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
-              </Link>
+              </ChapterLink>
             </motion.div>
 
             <HeroHeadline />
@@ -76,10 +76,10 @@ export default function Home() {
             <motion.div {...fadeUp(0.7)} className="mt-7 flex flex-wrap items-center gap-3">
               <Magnetic>
                 <Button asChild size="lg" className="group h-11 px-6">
-                  <Link to={`/chapter/${playable.slug}`}>
+                  <ChapterLink slug={playable.slug}>
                     Start with {playable.title}
                     <ArrowRight className="transition-transform duration-200 group-hover:translate-x-1" />
-                  </Link>
+                  </ChapterLink>
                 </Button>
               </Magnetic>
               <Button asChild size="lg" variant="ghost" className="group h-11">
@@ -160,8 +160,8 @@ export default function Home() {
               <ul className="divide-y overflow-hidden rounded-xl border">
                 {CHAPTERS.filter((c) => c.part === p).map((c) => (
                   <li key={c.n}>
-                    <Link
-                      to={`/chapter/${c.slug}`}
+                    <ChapterLink
+                      slug={c.slug}
                       className={cn(
                         "group relative flex items-start gap-3 px-4 py-3 transition-colors hover:bg-muted/60",
                         !c.ready && "text-muted-foreground",
@@ -188,7 +188,7 @@ export default function Home() {
                       ) : (
                         <Badge variant="outline" className="text-muted-foreground">Soon</Badge>
                       )}
-                    </Link>
+                    </ChapterLink>
                   </li>
                 ))}
               </ul>

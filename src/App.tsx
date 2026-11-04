@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router";
 import { Layout } from "@/components/Layout";
+import { ChapterTransitionProvider } from "@/components/transition/ChapterTransition";
 import Home from "@/pages/Home";
 
 const ChapterPage = lazy(() => import("@/pages/Chapter"));
@@ -15,6 +16,7 @@ function ScrollToTop() {
 
 export default function App() {
   return (
+    <ChapterTransitionProvider>
     <Layout>
       <ScrollToTop />
       <Suspense fallback={<div className="h-[60vh]" />}>
@@ -25,5 +27,6 @@ export default function App() {
         </Routes>
       </Suspense>
     </Layout>
+    </ChapterTransitionProvider>
   );
 }

@@ -1,4 +1,6 @@
 import { Suspense, useState } from "react";
+import { motion, type Variants } from "motion/react";
+import { useChapterTransition } from "@/components/transition/ChapterTransition";
 import { Link } from "react-router";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import type { ChapterMeta } from "@/content/chapters";
@@ -10,6 +12,13 @@ import { Reward } from "./Reward";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+// content rises in once the entrance curtain lifts
+const stagger: Variants = { hidden: {}, shown: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } } };
+const rise: Variants = {
+  hidden: { opacity: 0, y: 18 },
+  shown: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
+};
 
 function Section({ id, title, hint, children }: { id: string; title?: string; hint?: string; children: React.ReactNode }) {
   return (
@@ -34,23 +43,27 @@ export function ChapterShell({ meta, content }: { meta: ChapterMeta; content: Ch
   const mission = missions[active];
   const MissionComp = mission.component;
   const doneCount = missions.filter((m) => done[m.id]).length;
+  const { revealed } = useChapterTransition();
+  const entrance = revealed ? "shown" : "hidden";
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
       {/* hero */}
-      <div className="pt-8 pb-8 sm:pt-12">
-        <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="size-4" /> Bookshelf
-        </Link>
-        <div className="mt-6 flex flex-wrap items-center gap-2">
+      <motion.div className="pt-8 pb-8 sm:pt-12" variants={stagger} initial="hidden" animate={entrance}>
+        <motion.div variants={rise}>
+          <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="size-4" /> Bookshelf
+          </Link>
+        </motion.div>
+        <motion.div variants={rise} className="mt-6 flex flex-wrap items-center gap-2">
           <Badge variant="outline" className="font-mono">Ch {String(meta.n).padStart(2, "0")}</Badge>
           <span className="text-xs text-muted-foreground">Part {"I".repeat(meta.part)} · {PARTS[meta.part]}</span>
-        </div>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">{meta.title}</h1>
-        <p className="mt-3 max-w-2xl text-muted-foreground text-pretty">{content.tagline}</p>
+        </motion.div>
+        <motion.h1 variants={rise} className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">{meta.title}</motion.h1>
+        <motion.p variants={rise} className="mt-3 max-w-2xl text-muted-foreground text-pretty">{content.tagline}</motion.p>
 
         {/* progress pills */}
-        <div className="mt-6 flex flex-wrap items-center gap-1.5 text-xs">
+        <motion.div variants={rise} className="mt-6 flex flex-wrap items-center gap-1.5 text-xs">
           {missions.map((m, i) => (
             <a
               key={m.id}
@@ -74,10 +87,15 @@ export function ChapterShell({ meta, content }: { meta: ChapterMeta; content: Ch
           >
             {quizDone && <Check className="size-3 text-ok" />} Recall check
           </a>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
-      <div className="flex flex-col gap-14">
+      <motion.div
+        className="flex flex-col gap-14"
+        initial={{ opacity: 0, y: 24 }}
+        animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+        transition={{ duration: 0.6, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      >
         <Section id="warmup">
           <RecapStrip cards={content.recap} />
         </Section>
@@ -152,7 +170,7 @@ export function ChapterShell({ meta, content }: { meta: ChapterMeta; content: Ch
             ]}
           />
         </Section>
-      </div>
+      </motion.div>
     </div>
   );
 }
