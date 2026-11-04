@@ -1,7 +1,6 @@
-import { lazy, Suspense, useRef, useState } from "react";
-import { motion, useInView } from "motion/react";
-import { ArrowRight, ArrowDown, MousePointerClick } from "lucide-react";
-import { CHAPTERS, PARTS, type ChapterMeta, type Part } from "@/content/chapters";
+import { motion } from "motion/react";
+import { ArrowRight, ArrowDown } from "lucide-react";
+import { CHAPTERS, PARTS, type Part } from "@/content/chapters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { HeroHeadline } from "@/components/landing/HeroHeadline";
@@ -10,9 +9,9 @@ import { Magnetic } from "@/components/landing/Magnetic";
 import { Stats } from "@/components/landing/Stats";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { cn } from "@/lib/utils";
-import { ChapterLink, useChapterTransition } from "@/components/transition/ChapterTransition";
+import { ChapterLink } from "@/components/transition/ChapterTransition";
+import { TowerSection } from "@/components/landing/TowerSection";
 
-const Bookshelf = lazy(() => import("@/components/three/Bookshelf"));
 
 const ease = [0.22, 1, 0.36, 1] as const;
 const fadeUp = (delay = 0) => ({
@@ -32,13 +31,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 export default function Home() {
-  const { enterChapter } = useChapterTransition();
-  const [hovered, setHovered] = useState<number | null>(null);
-  const open = (ch: ChapterMeta, origin?: { x: number; y: number }) => enterChapter(ch.slug, origin);
-  const active = CHAPTERS.find((c) => c.n === hovered);
   const playable = CHAPTERS.find((c) => c.ready)!;
-  const shelfRef = useRef<HTMLDivElement>(null);
-  const shelfSeen = useInView(shelfRef, { once: true, amount: 0.35 });
 
   return (
     <div>
@@ -106,32 +99,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 3D shelf */}
-      <section className="mx-auto mt-8 max-w-6xl px-2 sm:px-6">
-        <div className="px-2 sm:px-0">
-          <SectionLabel>The shelf</SectionLabel>
-        </div>
-        <div ref={shelfRef} className="relative h-[200px] sm:h-[400px]">
-          <Suspense fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted/50" />}>
-            <Bookshelf chapters={CHAPTERS} started={shelfSeen} hovered={hovered} onHover={setHovered} onOpen={open} />
-          </Suspense>
-        </div>
-        <div className="flex min-h-12 items-center justify-center px-4 text-center text-sm" aria-live="polite">
-          {active ? (
-            <motion.span key={active.n} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-              <span className="font-mono text-muted-foreground">Ch {active.n} · </span>
-              <span className="font-medium">{active.title}</span>
-              <span className="text-muted-foreground"> — {active.ready ? active.play : "coming soon"}</span>
-            </motion.span>
-          ) : (
-            <motion.span key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="inline-flex items-center gap-2 text-muted-foreground">
-              <MousePointerClick className="size-4" />
-              <span className="pointer-coarse:hidden">Hover a spine to pull it out. Click to open.</span>
-              <span className="hidden pointer-coarse:inline">Tap a spine to open it.</span>
-            </motion.span>
-          )}
-        </div>
+      {/* the tower: scroll to climb the book */}
+      <section className="mx-auto mt-10 max-w-6xl px-4 sm:px-6">
+        <SectionLabel>The tower</SectionLabel>
       </section>
+      <TowerSection />
 
       {/* numbers */}
       <motion.section {...reveal} className="mx-auto mt-10 max-w-6xl px-4 sm:px-6">
