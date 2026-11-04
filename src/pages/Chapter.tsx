@@ -1,14 +1,16 @@
 import { lazy, Suspense, type ComponentType, type LazyExoticComponent } from "react";
 import { Link, useParams } from "react-router";
+import { CHAPTER_REGISTRY } from "@/chapters/registry";
+import { ChapterLink } from "@/components/transition/ChapterTransition";
 import { ArrowLeft, ArrowRight, Hammer } from "lucide-react";
 import { chapterBySlug, PARTS } from "@/content/chapters";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-/** Chapter modules; add a line here when a chapter is built. */
-const MODULES: Record<string, LazyExoticComponent<ComponentType>> = {
-  replication: lazy(() => import("@/chapters/ch06-replication")),
-};
+/** One lazy component per registered chapter (see src/chapters/registry.ts). */
+const MODULES: Record<string, LazyExoticComponent<ComponentType>> = Object.fromEntries(
+  Object.entries(CHAPTER_REGISTRY).map(([slug, entry]) => [slug, lazy(entry.load)]),
+);
 
 export default function ChapterPage() {
   const { slug = "" } = useParams();
@@ -46,9 +48,9 @@ export default function ChapterPage() {
         <h1 className="mt-8 text-3xl font-semibold tracking-tight">That chapter isn't on the shelf.</h1>
       )}
       <Button asChild className="mt-8">
-        <Link to="/chapter/replication">
+        <ChapterLink slug="replication">
           Try Replication <ArrowRight />
-        </Link>
+        </ChapterLink>
       </Button>
     </div>
   );

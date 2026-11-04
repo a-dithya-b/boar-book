@@ -1,100 +1,198 @@
-import { lazy, Suspense, useState } from "react";
-import { Link, useNavigate } from "react-router";
-import { ArrowRight, MousePointerClick } from "lucide-react";
+import { lazy, Suspense, useRef, useState } from "react";
+import { motion, useInView } from "motion/react";
+import { ArrowRight, ArrowDown, MousePointerClick } from "lucide-react";
 import { CHAPTERS, PARTS, type ChapterMeta, type Part } from "@/content/chapters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { HeroHeadline } from "@/components/landing/HeroHeadline";
+import { ReplicaToy } from "@/components/landing/ReplicaToy";
+import { Magnetic } from "@/components/landing/Magnetic";
+import { Stats } from "@/components/landing/Stats";
+import { HowItWorks } from "@/components/landing/HowItWorks";
 import { cn } from "@/lib/utils";
+import { ChapterLink, useChapterTransition } from "@/components/transition/ChapterTransition";
 
 const Bookshelf = lazy(() => import("@/components/three/Bookshelf"));
 
+const ease = [0.22, 1, 0.36, 1] as const;
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 14 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.6, delay, ease },
+});
+const reveal = {
+  initial: { opacity: 0, y: 18 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-80px" },
+  transition: { duration: 0.6, ease },
+};
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <div className="mb-4 font-mono text-xs uppercase tracking-wider text-muted-foreground">{children}</div>;
+}
+
 export default function Home() {
-  const navigate = useNavigate();
+  const { enterChapter } = useChapterTransition();
   const [hovered, setHovered] = useState<number | null>(null);
-  const open = (ch: ChapterMeta) => navigate(`/chapter/${ch.slug}`);
+  const open = (ch: ChapterMeta, origin?: { x: number; y: number }) => enterChapter(ch.slug, origin);
   const active = CHAPTERS.find((c) => c.n === hovered);
+  const playable = CHAPTERS.find((c) => c.ready)!;
+  const shelfRef = useRef<HTMLDivElement>(null);
+  const shelfSeen = useInView(shelfRef, { once: true, amount: 0.35 });
 
   return (
     <div>
-      <section className="mx-auto max-w-6xl px-4 pt-12 sm:px-6 sm:pt-16">
-        <Badge variant="outline" className="mb-4 font-mono">DDIA · 2nd edition</Badge>
-        <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-          Remember the book by playing with it.
-        </h1>
-        <p className="mt-4 max-w-xl text-muted-foreground text-pretty">
-          Every chapter of <em>Designing Data-Intensive Applications</em> as a few hands-on missions.
-          Break things. Fix them. Keep the takeaways.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-2">
-          <Button asChild size="lg">
-            <Link to="/chapter/replication">
-              Start with Replication <ArrowRight />
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <a href="#chapters">All chapters</a>
-          </Button>
+      {/* hero */}
+      <section className="relative overflow-hidden">
+        <div
+          aria-hidden
+          className="bg-dots pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_70%_60%_at_70%_40%,black,transparent)]"
+        />
+        <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 pt-12 pb-6 sm:px-6 sm:pt-20 lg:grid-cols-[1.15fr_1fr]">
+          <div>
+            <motion.div {...fadeUp(0)}>
+              <ChapterLink
+                slug={playable.slug}
+                className="group mb-5 inline-flex items-center gap-2 rounded-full border bg-background/80 py-1 pr-3 pl-2 text-xs backdrop-blur transition-colors hover:border-foreground/30"
+              >
+                <span className="relative flex size-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-ok opacity-60" />
+                  <span className="relative inline-flex size-2 rounded-full bg-ok" />
+                </span>
+                <span className="font-mono">DDIA 2e</span>
+                <span className="text-muted-foreground">·</span>
+                <span>Ch {playable.n} {playable.title} is playable</span>
+                <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+              </ChapterLink>
+            </motion.div>
+
+            <HeroHeadline />
+
+            <motion.p {...fadeUp(0.55)} className="mt-5 max-w-xl text-lg text-muted-foreground text-pretty">
+              Every chapter of <em>Designing Data-Intensive Applications</em> as a few hands-on missions. Break
+              things. Fix them. Keep the takeaways.
+            </motion.p>
+
+            <motion.div {...fadeUp(0.7)} className="mt-7 flex flex-wrap items-center gap-3">
+              <Magnetic>
+                <Button asChild size="lg" className="group h-11 px-6">
+                  <ChapterLink slug={playable.slug}>
+                    Start with {playable.title}
+                    <ArrowRight className="transition-transform duration-200 group-hover:translate-x-1" />
+                  </ChapterLink>
+                </Button>
+              </Magnetic>
+              <Button asChild size="lg" variant="ghost" className="group h-11">
+                <a href="#chapters">
+                  Browse chapters
+                  <ArrowDown className="transition-transform duration-200 group-hover:translate-y-0.5" />
+                </a>
+              </Button>
+            </motion.div>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.35, ease }}
+            className="rounded-2xl border bg-background/90 p-4 shadow-sm backdrop-blur"
+          >
+            <div className="mb-1 flex items-center justify-between px-1">
+              <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Try it</span>
+              <span className="text-[11px] text-muted-foreground">a taste of Chapter 6</span>
+            </div>
+            <ReplicaToy />
+          </motion.div>
         </div>
       </section>
 
       {/* 3D shelf */}
-      <section className="mx-auto mt-6 max-w-6xl px-2 sm:px-6">
-        <div className="relative h-[200px] sm:h-[420px]">
+      <section className="mx-auto mt-8 max-w-6xl px-2 sm:px-6">
+        <div className="px-2 sm:px-0">
+          <SectionLabel>The shelf</SectionLabel>
+        </div>
+        <div ref={shelfRef} className="relative h-[200px] sm:h-[400px]">
           <Suspense fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted/50" />}>
-            <Bookshelf chapters={CHAPTERS} hovered={hovered} onHover={setHovered} onOpen={open} />
+            <Bookshelf chapters={CHAPTERS} started={shelfSeen} hovered={hovered} onHover={setHovered} onOpen={open} />
           </Suspense>
         </div>
         <div className="flex min-h-12 items-center justify-center px-4 text-center text-sm" aria-live="polite">
           {active ? (
-            <span>
+            <motion.span key={active.n} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
               <span className="font-mono text-muted-foreground">Ch {active.n} · </span>
               <span className="font-medium">{active.title}</span>
               <span className="text-muted-foreground"> — {active.ready ? active.play : "coming soon"}</span>
-            </span>
+            </motion.span>
           ) : (
-            <span className="inline-flex items-center gap-2 text-muted-foreground">
+            <motion.span key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="inline-flex items-center gap-2 text-muted-foreground">
               <MousePointerClick className="size-4" />
               <span className="pointer-coarse:hidden">Hover a spine to pull it out. Click to open.</span>
               <span className="hidden pointer-coarse:inline">Tap a spine to open it.</span>
-            </span>
+            </motion.span>
           )}
         </div>
       </section>
 
-      {/* plain list */}
-      <section id="chapters" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-14 sm:px-6">
-        <h2 className="text-2xl font-semibold tracking-tight">Chapters</h2>
-        <div className="mt-6 grid gap-8 md:grid-cols-3">
-          {([1, 2, 3] as Part[]).map((p) => (
-            <div key={p}>
+      {/* numbers */}
+      <motion.section {...reveal} className="mx-auto mt-10 max-w-6xl px-4 sm:px-6">
+        <Stats />
+      </motion.section>
+
+      {/* how it works */}
+      <section className="mx-auto mt-16 max-w-6xl px-4 sm:px-6">
+        <motion.div {...reveal}>
+          <SectionLabel>How a chapter works</SectionLabel>
+        </motion.div>
+        <HowItWorks />
+      </section>
+
+      {/* chapter list */}
+      <section id="chapters" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-16 sm:px-6">
+        <motion.div {...reveal}>
+          <SectionLabel>All chapters</SectionLabel>
+        </motion.div>
+        <div className="grid gap-8 md:grid-cols-3">
+          {([1, 2, 3] as Part[]).map((p, pi) => (
+            <motion.div key={p} {...reveal} transition={{ ...reveal.transition, delay: pi * 0.08 }}>
               <div className="mb-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Part {"I".repeat(p)} · {PARTS[p]}
               </div>
-              <ul className="divide-y rounded-xl border">
+              <ul className="divide-y overflow-hidden rounded-xl border">
                 {CHAPTERS.filter((c) => c.part === p).map((c) => (
                   <li key={c.n}>
-                    <Link
-                      to={`/chapter/${c.slug}`}
+                    <ChapterLink
+                      slug={c.slug}
                       className={cn(
-                        "group flex items-start gap-3 px-4 py-3 transition-colors hover:bg-muted/60",
+                        "group relative flex items-start gap-3 px-4 py-3 transition-colors hover:bg-muted/60",
                         !c.ready && "text-muted-foreground",
                       )}
                     >
-                      <span className="mt-0.5 font-mono text-xs tabular-nums">{String(c.n).padStart(2, "0")}</span>
+                      <span
+                        className={cn(
+                          "absolute inset-y-0 left-0 w-0.5 origin-top scale-y-0 transition-transform duration-300 group-hover:scale-y-100",
+                          c.ready ? "bg-ok" : "bg-foreground/20",
+                        )}
+                      />
+                      <span className="mt-0.5 font-mono text-xs tabular-nums transition-transform duration-200 group-hover:translate-x-0.5">
+                        {String(c.n).padStart(2, "0")}
+                      </span>
                       <span className="flex-1">
                         <span className={cn("block text-sm font-medium", c.ready && "text-foreground")}>{c.title}</span>
                         <span className="block text-xs text-muted-foreground">{c.play}</span>
                       </span>
                       {c.ready ? (
-                        <Badge variant="ok">Play</Badge>
+                        <span className="flex items-center gap-1">
+                          <Badge variant="ok">Play</Badge>
+                          <ArrowRight className="size-3.5 -translate-x-1 text-ok opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100" />
+                        </span>
                       ) : (
                         <Badge variant="outline" className="text-muted-foreground">Soon</Badge>
                       )}
-                    </Link>
+                    </ChapterLink>
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
           ))}
         </div>
       </section>
