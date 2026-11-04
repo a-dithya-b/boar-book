@@ -1,4 +1,4 @@
-import { lazy, Suspense, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { motion, useInView } from "motion/react";
 import { ArrowRight, ArrowDown, MousePointerClick } from "lucide-react";
 import { CHAPTERS, PARTS, type ChapterMeta, type Part } from "@/content/chapters";
@@ -10,9 +10,10 @@ import { Magnetic } from "@/components/landing/Magnetic";
 import { Stats } from "@/components/landing/Stats";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { cn } from "@/lib/utils";
+import { OBJECT_HOOKS } from "@/components/three/objects/ChapterObjects";
 import { ChapterLink, useChapterTransition } from "@/components/transition/ChapterTransition";
 
-const Bookshelf = lazy(() => import("@/components/three/Bookshelf"));
+const CabinetScene = lazy(() => import("@/components/three/cabinet/CabinetScene"));
 
 const ease = [0.22, 1, 0.36, 1] as const;
 const fadeUp = (delay = 0) => ({
@@ -38,7 +39,13 @@ export default function Home() {
   const active = CHAPTERS.find((c) => c.n === hovered);
   const playable = CHAPTERS.find((c) => c.ready)!;
   const shelfRef = useRef<HTMLDivElement>(null);
-  const shelfSeen = useInView(shelfRef, { once: true, amount: 0.35 });
+  const shelfSeen = useInView(shelfRef, { once: true, amount: 0.3 });
+  const [narrow, setNarrow] = useState(() => window.innerWidth < 700);
+  useEffect(() => {
+    const onResize = () => setNarrow(window.innerWidth < 700);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   return (
     <div>
@@ -106,28 +113,29 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 3D shelf */}
-      <section className="mx-auto mt-8 max-w-6xl px-2 sm:px-6">
+      {/* the cabinet: one memorable object per chapter */}
+      <section className="mx-auto mt-10 max-w-6xl px-2 sm:px-6">
         <div className="px-2 sm:px-0">
-          <SectionLabel>The shelf</SectionLabel>
+          <SectionLabel>The cabinet</SectionLabel>
         </div>
-        <div ref={shelfRef} className="relative h-[200px] sm:h-[400px]">
+        <div ref={shelfRef} className="relative h-[680px] sm:h-[600px]">
           <Suspense fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted/50" />}>
-            <Bookshelf chapters={CHAPTERS} started={shelfSeen} hovered={hovered} onHover={setHovered} onOpen={open} />
+            <CabinetScene started={shelfSeen} narrow={narrow} hovered={hovered} onHover={setHovered} onOpen={open} />
           </Suspense>
         </div>
-        <div className="flex min-h-12 items-center justify-center px-4 text-center text-sm" aria-live="polite">
+        <div className="flex min-h-14 items-center justify-center px-4 text-center text-sm" aria-live="polite">
           {active ? (
             <motion.span key={active.n} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-              <span className="font-mono text-muted-foreground">Ch {active.n} · </span>
+              <span className="font-mono text-muted-foreground">Ch {String(active.n).padStart(2, "0")} · </span>
               <span className="font-medium">{active.title}</span>
-              <span className="text-muted-foreground"> — {active.ready ? active.play : "coming soon"}</span>
+              <span className="text-muted-foreground"> — “{OBJECT_HOOKS[active.n]}”</span>
+              {!active.ready && <span className="text-muted-foreground"> (coming soon)</span>}
             </motion.span>
           ) : (
             <motion.span key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="inline-flex items-center gap-2 text-muted-foreground">
               <MousePointerClick className="size-4" />
-              <span className="pointer-coarse:hidden">Hover a spine to pull it out. Click to open.</span>
-              <span className="hidden pointer-coarse:inline">Tap a spine to open it.</span>
+              <span className="pointer-coarse:hidden">Each object is a memory hook. Hover one, click to open its chapter.</span>
+              <span className="hidden pointer-coarse:inline">Each object is a memory hook. Tap one to open its chapter.</span>
             </motion.span>
           )}
         </div>
