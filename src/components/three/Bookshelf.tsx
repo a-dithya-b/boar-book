@@ -88,6 +88,11 @@ function Book({
   x,
   height,
   hovered,
+  nudge,
+  opening,
+  index,
+  reduce,
+  started,
   onHover,
   onOpen,
   fontsReady,
@@ -96,6 +101,11 @@ function Book({
   x: number;
   height: number;
   hovered: boolean;
+  nudge: boolean;
+  opening: boolean;
+  index: number;
+  reduce: boolean;
+  started: boolean;
   onHover: (n: number | null) => void;
   onOpen: (ch: ChapterMeta) => void;
   fontsReady: boolean;
@@ -104,17 +114,40 @@ function Book({
   const tex = useMemo(() => makeSpineTexture(ch, height), [ch, height, fontsReady]);
   useEffect(() => () => tex.dispose(), [tex]);
 
-  useFrame((_, dt) => {
-    if (!ref.current) return;
-    const targetZ = hovered ? 0.6 : 0;
-    const targetY = hovered ? 0.08 : 0;
-    ref.current.position.z = THREE.MathUtils.damp(ref.current.position.z, targetZ, 10, dt);
-    ref.current.position.y = THREE.MathUtils.damp(ref.current.position.y, height / 2 + targetY, 10, dt);
+  // drop-in: each book falls onto the shelf with a small bounce, staggered left to right
+  const drop = useRef({ settled: reduce, vy: 0, wait: 0.15 + index * 0.055 });
+
+  useFrame((_, rawDt) => {
+    const g = ref.current;
+    if (!g) return;
+    const dt = Math.min(rawDt, 1 / 30);
+    const rest = height / 2;
+    const d = drop.current;
+    if (!d.settled) {
+      if (d.wait > 0) {
+        if (started) d.wait -= dt;
+        return;
+      }
+      d.vy -= 30 * dt;
+      g.position.y += d.vy * dt;
+      if (g.position.y <= rest) {
+        g.position.y = rest;
+        d.vy = -d.vy * 0.28;
+        if (Math.abs(d.vy) < 0.6) d.settled = true;
+      }
+      return;
+    }
+    const targetZ = opening ? 1.7 : hovered ? 0.6 : nudge ? 0.32 : 0;
+    const targetY = opening ? 0.2 : hovered ? 0.08 : 0;
+    const targetRot = opening ? -0.35 : hovered ? -0.06 : 0;
+    g.position.z = THREE.MathUtils.damp(g.position.z, targetZ, opening ? 7 : 10, dt);
+    g.position.y = THREE.MathUtils.damp(g.position.y, rest + targetY, 10, dt);
+    g.rotation.y = THREE.MathUtils.damp(g.rotation.y, targetRot, 8, dt);
   });
 
   const cover = ch.ready ? "#0a0a0a" : "#ffffff";
   return (
-    <group ref={ref} position={[x, height / 2, 0]}>
+    <group ref={ref} position={[x, reduce ? height / 2 : height / 2 + 4.5, 0]}>
       <RoundedBox
         args={[SPINE_W, height, DEPTH]}
         radius={0.03}
@@ -172,13 +205,48 @@ export function Bookshelf({
   hovered,
   onHover,
   onOpen,
+  started = true,
 }: {
   chapters: ChapterMeta[];
+  started?: boolean;
   hovered: number | null;
   onHover: (n: number | null) => void;
   onOpen: (ch: ChapterMeta) => void;
 }) {
   const [fontsReady, setFontsReady] = useState(false);
+  const [opening, setOpening] = useState<number | null>(null);
+  const [nudge, setNudge] = useState(false);
+  const touched = useRef(false);
+  const reduce = useMemo(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches, []);
+
+  // until someone touches the shelf, the playable chapter peeks out now and then
+  useEffect(() => {
+    if (reduce) return;
+    const timers: number[] = [];
+    const t = window.setInterval(() => {
+      if (touched.current) return;
+      setNudge(true);
+      timers.push(window.setTimeout(() => setNudge(false), 650));
+    }, 4200);
+    return () => {
+      clearInterval(t);
+      timers.forEach(clearTimeout);
+    };
+  }, [reduce]);
+
+  // the pointer cursor set on hover must not outlive the shelf
+  useEffect(() => () => void (document.body.style.cursor = ""), []);
+
+  const hover = (n: number | null) => {
+    if (n !== null) touched.current = true;
+    onHover(n);
+  };
+  const open = (ch: ChapterMeta) => {
+    touched.current = true;
+    if (reduce) return onOpen(ch);
+    setOpening(ch.n);
+    window.setTimeout(() => onOpen(ch), 420);
+  };
   useEffect(() => {
     Promise.all([
       document.fonts.load(`500 40px "Geist Variable"`),
@@ -205,15 +273,20 @@ export function Bookshelf({
       <directionalLight position={[3, 6, 5]} intensity={1.6} castShadow shadow-mapSize={[1024, 1024]} />
       <directionalLight position={[-4, 3, 2]} intensity={0.5} />
       <Rig width={layout.width} />
-      {layout.items.map(({ ch, x, height }) => (
+      {layout.items.map(({ ch, x, height }, i) => (
         <Book
           key={ch.n}
           ch={ch}
           x={x}
           height={height}
+          index={i}
+          reduce={reduce}
+          started={started}
           hovered={hovered === ch.n}
-          onHover={onHover}
-          onOpen={onOpen}
+          nudge={nudge && ch.ready && hovered === null}
+          opening={opening === ch.n}
+          onHover={hover}
+          onOpen={open}
           fontsReady={fontsReady}
         />
       ))}
