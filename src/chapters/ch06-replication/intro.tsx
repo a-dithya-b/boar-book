@@ -12,7 +12,7 @@ const ease = [0.22, 1, 0.36, 1] as const;
 
 /** One node copies itself into a leader and two followers, a write replicates, and the title converges from lagging copies. */
 function Scene({ speed }: IntroProps) {
-  const t = (s: number) => s / speed;
+  const t = (s: number) => (s / speed)*1.5;
   return (
     <div className="flex w-full max-w-md flex-col items-center px-6">
       <svg viewBox="0 0 400 220" className="w-full overflow-visible" aria-hidden>
@@ -126,4 +126,4 @@ function Scene({ speed }: IntroProps) {
   );
 }
 
-export const replicationIntro: IntroScene = { Scene, duration: 1600 };
+export const replicationIntro: IntroScene = { Scene, duration: 2400 };

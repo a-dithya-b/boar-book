@@ -72,7 +72,7 @@ export function ChapterTransitionProvider({ children }: { children: ReactNode })
     if (st.phase !== "scene" || !st.slug) return;
     sceneDone.current = false;
     const fast = seen.has(st.slug);
-    const ms = introFor(st.slug).duration / (fast ? 1.8 : 1);
+    const ms = introFor(st.slug).duration / (fast ? 1 : 1);
     timer.current = window.setTimeout(() => {
       seen.add(st.slug!);
       sceneDone.current = true;
@@ -161,7 +161,7 @@ export function ChapterTransitionProvider({ children }: { children: ReactNode })
               animate={st.phase === "reveal" ? { opacity: 0, scale: 1.06 } : { opacity: 1, scale: 1 }}
               transition={{ duration: 0.35 }}
             >
-              <intro.Scene meta={meta} speed={seen.has(st.slug!) ? 1.8 : 1} />
+              <intro.Scene meta={meta} speed={seen.has(st.slug!) ? 1 : 1} />
             </motion.div>
           )}
           {st.phase === "scene" && (
