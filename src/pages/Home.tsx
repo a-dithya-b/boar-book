@@ -4,7 +4,7 @@ import { CHAPTERS, PARTS, type Part } from "@/content/chapters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { HeroHeadline } from "@/components/landing/HeroHeadline";
-import { ReplicaToy } from "@/components/landing/ReplicaToy";
+import { HeroToys } from "@/components/landing/HeroToys";
 import { Magnetic } from "@/components/landing/Magnetic";
 import { Stats } from "@/components/landing/Stats";
 import { HowItWorks } from "@/components/landing/HowItWorks";
@@ -32,6 +32,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export default function Home() {
   const playable = CHAPTERS.find((c) => c.ready)!;
+  const playableCount = CHAPTERS.filter((c) => c.ready).length;
 
   return (
     <div>
@@ -54,7 +55,7 @@ export default function Home() {
                 </span>
                 <span className="font-mono">DDIA 2e</span>
                 <span className="text-muted-foreground">·</span>
-                <span>Ch {playable.n} {playable.title} is playable</span>
+                <span>{playableCount} chapters playable</span>
                 <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
               </ChapterLink>
             </motion.div>
@@ -70,7 +71,7 @@ export default function Home() {
               <Magnetic>
                 <Button asChild size="lg" className="group h-11 px-6">
                   <ChapterLink slug={playable.slug}>
-                    Start with {playable.title}
+                    Start with Chapter {playable.n}
                     <ArrowRight className="transition-transform duration-200 group-hover:translate-x-1" />
                   </ChapterLink>
                 </Button>
@@ -90,11 +91,7 @@ export default function Home() {
             transition={{ duration: 0.7, delay: 0.35, ease }}
             className="rounded-2xl border bg-background/90 p-4 shadow-sm backdrop-blur"
           >
-            <div className="mb-1 flex items-center justify-between px-1">
-              <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">Try it</span>
-              <span className="text-[11px] text-muted-foreground">a taste of Chapter 6</span>
-            </div>
-            <ReplicaToy />
+            <HeroToys />
           </motion.div>
         </div>
       </section>

@@ -112,8 +112,8 @@ export function ReplicaToy() {
   const lagging = fs.map((f) => leader - f.log);
 
   return (
-    <div className="relative select-none">
-      <svg viewBox="0 0 360 250" className="w-full" role="img" aria-label="A leader and two followers replicating writes">
+    <div className="relative flex h-full flex-col select-none">
+      <svg viewBox="0 0 360 250" className="max-h-[262px] w-full flex-1" role="img" aria-label="A leader and two followers replicating writes">
         {/* links */}
         {FOLLOWERS.map((f, i) => (
           <line
