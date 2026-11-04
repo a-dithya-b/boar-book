@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import type { IntroScene } from "@/components/transition/types";
 import { defaultIntro } from "@/components/transition/DefaultIntro";
 import { replicationIntro } from "./ch06-replication/intro";
+import { tradeOffsIntro } from "./ch01-trade-offs/intro";
 
 /**
  * Every playable chapter registers here:
@@ -14,6 +15,7 @@ export interface ChapterEntry {
 }
 
 export const CHAPTER_REGISTRY: Record<string, ChapterEntry> = {
+  "trade-offs": { load: () => import("./ch01-trade-offs"), intro: tradeOffsIntro },
   replication: { load: () => import("./ch06-replication"), intro: replicationIntro },
 };
 
